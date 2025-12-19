@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:tenxglobal_customer/models/cart_data_model.dart';
-import 'package:tenxglobal_customer/models/dummy_data.dart';
+
 import 'package:tenxglobal_customer/presentation/customer/provider/customer_provider.dart';
 import 'package:tenxglobal_customer/presentation/customer/screen/customer_screen.dart';
 
-/// 🔑 Global navigator key (IMPORTANT)
+///  Global navigator key (IMPORTANT)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
@@ -44,12 +44,12 @@ Future<void> startServer() async {
 
   final server = await HttpServer.bind(
     InternetAddress.anyIPv4, // 0.0.0.0
-    8080,
+    51234,
   );
 
   print('Server started!');
-  print('GET  → http://$ip:8080/hello');
-  print('POST → http://$ip:8080/data');
+  print('GET  → http://$ip:51234/hello');
+  print('POST → http://$ip:51234/data');
 
   server.listen(handleRequest);
 }
@@ -74,10 +74,10 @@ void handleRequest(HttpRequest request) async {
 
     print('Received POST data: $decoded');
 
-    // 🔹 Parse JSON → Model
+    //  Parse JSON → Model
     final orderResponse = OrderResponse.fromJson(decoded);
 
-    // 🔹 Access Provider safely
+    // Access Provider safely
     final context = navigatorKey.currentContext;
     if (context != null) {
       Provider.of<CustomerProvider>(
