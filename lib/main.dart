@@ -17,40 +17,125 @@ void main() async {
   runApp(const MyApp());
 }
 
-/* -------------------- NETWORK HELPERS -------------------- */
-
-Future<String?> getWifiIp() async {
+//window
+Future<String?> getActiveLanIp() async {
   try {
-    for (var interface in await NetworkInterface.list()) {
-      for (var addr in interface.addresses) {
-        if (addr.type == InternetAddressType.IPv4 &&
-            !addr.isLoopback &&
-            !addr.address.startsWith("127")) {
-          // Accept first non-loopback IPv4 address
-          return addr.address;
+    final interfaces = await NetworkInterface.list(
+      includeLoopback: false,
+      type: InternetAddressType.IPv4,
+    );
+
+    for (final interface in interfaces) {
+      // Skip virtual / unwanted adapters by name
+      final name = interface.name.toLowerCase();
+
+      if (name.contains('virtual') ||
+          name.contains('vm') ||
+          name.contains('hyper') ||
+          name.contains('docker') ||
+          name.contains('loopback')) {
+        continue;
+      }
+
+      for (final addr in interface.addresses) {
+        final ip = addr.address;
+
+        // Skip link-local
+        if (ip.startsWith('169.254')) continue;
+
+        // Accept private LAN IP
+        if (_isPrivateIPv4(ip)) {
+          return ip;
         }
       }
     }
   } catch (e) {
-    print("Error getting IP: $e");
+    print('IP error: $e');
   }
   return null;
 }
 
+//window
+Future<List<String>> getUsableLanIps() async {
+  final ips = <String>[];
+
+  final interfaces = await NetworkInterface.list(
+    includeLoopback: false,
+    type: InternetAddressType.IPv4,
+  );
+
+  for (final interface in interfaces) {
+    for (final addr in interface.addresses) {
+      final ip = addr.address;
+
+      if (_isPrivateIPv4(ip) && !ip.startsWith('169.254')) {
+        ips.add(ip);
+      }
+    }
+  }
+  return ips;
+}
+
+//window
+bool _isPrivateIPv4(String ip) {
+  final parts = ip.split('.').map(int.parse).toList();
+
+  // 10.0.0.0 – 10.255.255.255
+  if (parts[0] == 10) return true;
+
+  // 172.16.0.0 – 172.31.255.255
+  if (parts[0] == 172 && parts[1] >= 16 && parts[1] <= 31) return true;
+
+  // 192.168.0.0 – 192.168.255.255
+  if (parts[0] == 192 && parts[1] == 168) return true;
+
+  return false;
+}
+
+/* -------------------- NETWORK HELPERS -------------------- */
+//Mobile
+// Future<String?> getWifiIp() async {
+//   try {
+//     for (var interface in await NetworkInterface.list()) {
+//       for (var addr in interface.addresses) {
+//         if (addr.type == InternetAddressType.IPv4 &&
+//             !addr.isLoopback &&
+//             !addr.address.startsWith("127")) {
+//           // Accept first non-loopback IPv4 address
+//           return addr.address;
+//         }
+//       }
+//     }
+//   } catch (e) {
+//     print("Error getting IP: $e");
+//   }
+//   return null;
+// }
+
 /* -------------------- HTTP SERVER -------------------- */
 
 Future<void> startServer() async {
-  final ip = await getWifiIp();
+  //mobile
+  // final ip = await getWifiIp();
 
   final server = await HttpServer.bind(
     InternetAddress.anyIPv4, // 0.0.0.0
     51234,
   );
+  //window
+  final ips = await getUsableLanIps();
+  for (final ip in ips) {
+    // print('Server available at → http://$ip:51234');
+    print('POST → http://$ip:51234/data');
+    print('GET  → http://$ip:51234/hello');
+  }
+  //========================================//
 
-  print('Server started!');
-  print('GET  → http://$ip:51234/hello');
-  print('POST → http://$ip:51234/data');
-
+  //mobile
+  // print('Server started!');
+  // print('GET  → http://$ip:51234/hello');
+  // print('POST → http://$ip:51234/data');
+  //===============================//
   server.listen(handleRequest);
 }
 
@@ -125,3 +210,40 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+// import 'dart:io';
+
+// class CashDrawerService {
+//   static const int defaultPort = 9100; // Xprinter LAN usually 9100
+
+//   // Try method A then B (best for Xprinter variations)
+//   static Future<void> open({
+//     required String ip,
+//     int port = defaultPort,
+//   }) async {
+//     final kickA = <int>[0x1B, 0x70, 0x00, 0x19, 0xFA];
+//     final kickB = <int>[0x1B, 0x70, 0x00, 0x3C, 0xFF];
+
+//     // Attempt A
+//     final okA = await _send(ip, port, kickA);
+//     if (okA) return;
+
+//     // Attempt B
+//     await _send(ip, port, kickB);
+//   }
+
+//   static Future<bool> _send(String ip, int port, List<int> bytes) async {
+//     Socket? socket;
+//     try {
+//       socket = await Socket.connect(ip, port, timeout: const Duration(seconds: 3));
+//       socket.add(bytes);
+//       await socket.flush();
+//       return true;
+//     } catch (_) {
+//       return false;
+//     } finally {
+//       await socket?.close();
+//     }
+//   }
+// }
