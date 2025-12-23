@@ -73,8 +73,10 @@ class CustomerScreen extends StatelessWidget {
                           final order =
                               provider.orders == null || provider.orders.isEmpty
                               ? null
-                              : provider.orders.first.order!;
-                          final items = order == null ? [] : order.items ?? [];
+                              : provider.orders.first;
+                          final items = order == null
+                              ? []
+                              : order.cartData.items ?? [];
 
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +96,7 @@ class CustomerScreen extends StatelessWidget {
                                     ),
                                     child: Text(
                                       order != null
-                                          ? order.orderType ?? 'Takeaway'
+                                          ? order.cartData.orderType
                                           : 'Takeaway',
                                       style: const TextStyle(
                                         color: Color(0xFF1B1670),
@@ -141,7 +143,7 @@ class CustomerScreen extends StatelessWidget {
                                         ),
                                         child: Text(
                                           order != null
-                                              ? order.customerName ?? 'Walk-in'
+                                              ? order.cartData.customer
                                               : 'Walk-in',
                                         ),
                                       ),
@@ -175,20 +177,85 @@ class CustomerScreen extends StatelessWidget {
                                                     final item = items[index];
                                                     return Row(
                                                       children: [
-                                                        /// ITEM IMAGE
-                                                        const Icon(
-                                                          Icons.fastfood,
-                                                          size: 45,
+                                                        Image.network(
+                                                          item.img,
+                                                          height: 45,
                                                         ),
 
+                                                        // /// ITEM IMAGE
+                                                        // const Icon(
+                                                        //   Icons.fastfood,
+                                                        //   size: 45,
+                                                        // ),
                                                         const SizedBox(
                                                           width: 8,
                                                         ),
 
                                                         /// NAME
                                                         Expanded(
-                                                          child: Text(
-                                                            item.title ?? '',
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            mainAxisAlignment:
+                                                                MainAxisAlignment
+                                                                    .spaceBetween,
+                                                            children: [
+                                                              Text(
+                                                                item.title ??
+                                                                    '',
+                                                              ),
+                                                              item.variantName ==
+                                                                      null
+                                                                  ? SizedBox()
+                                                                  : Text(
+                                                                      "Varient: ${item.variantName}",
+                                                                    ),
+
+                                                              // if (item
+                                                              //     .addons
+                                                              //     .isNotEmpty)
+                                                              //   Text(
+                                                              //     'Addons:',
+                                                              //     style: TextStyle(
+                                                              //       fontSize:
+                                                              //           11,
+                                                              //       fontWeight:
+                                                              //           FontWeight
+                                                              //               .bold,
+                                                              //       color: Colors
+                                                              //           .grey[800],
+                                                              //     ),
+                                                              //   ),
+                                                              Wrap(
+                                                                children: item.addons.map<Widget>((
+                                                                  addon,
+                                                                ) {
+                                                                  return Padding(
+                                                                    padding: const EdgeInsets.symmetric(
+                                                                      horizontal:
+                                                                          2.0,
+                                                                      vertical:
+                                                                          0.0,
+                                                                    ),
+                                                                    child: Container(
+                                                                      padding:
+                                                                          const EdgeInsets.all(
+                                                                            4.0,
+                                                                          ),
+
+                                                                      child: Text(
+                                                                        '${addon.name} (£${addon.price.toStringAsFixed(2)})',
+                                                                        style: const TextStyle(
+                                                                          fontSize:
+                                                                              11.0,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                                }).toList(),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ),
 
@@ -210,8 +277,9 @@ class CustomerScreen extends StatelessWidget {
                                                                       229,
                                                                     ),
                                                               ),
+
                                                           child: Text(
-                                                            'x${item.quantity ?? 0}',
+                                                            'x${item.qty ?? 0}',
                                                             style:
                                                                 const TextStyle(
                                                                   fontSize: 12,
@@ -225,7 +293,7 @@ class CustomerScreen extends StatelessWidget {
 
                                                         /// PRICE
                                                         Text(
-                                                          '\$${item.price?.toStringAsFixed(2) ?? '0.00'}',
+                                                          '£ ${item.price?.toStringAsFixed(2) ?? '0.00'}',
                                                         ),
                                                       ],
                                                     );
@@ -236,7 +304,7 @@ class CustomerScreen extends StatelessWidget {
 
                                       const SizedBox(height: 5.0),
                                       const Divider(thickness: 0.5),
-                                      const SizedBox(height: 5.0),
+                                      const SizedBox(height: 15.0),
 
                                       /// ---------------- TOTALS ----------------
                                       Row(
@@ -246,7 +314,7 @@ class CustomerScreen extends StatelessWidget {
                                           const Text('Subtotal'),
                                           Text(
                                             order != null
-                                                ? '\$${order.subTotal?.toStringAsFixed(2) ?? '0.00'}'
+                                                ? '£ ${order.cartData.subtotal.toStringAsFixed(2) ?? '0.00'}'
                                                 : '0.00',
                                           ),
                                         ],
@@ -260,7 +328,7 @@ class CustomerScreen extends StatelessWidget {
                                           const Text('Tax'),
                                           Text(
                                             order != null
-                                                ? '\$${order.tax?.toStringAsFixed(2) ?? '0.00'}'
+                                                ? '£ ${order.cartData.tax.toStringAsFixed(2) ?? '0.00'}'
                                                 : '0.00',
                                           ),
                                         ],
@@ -274,7 +342,7 @@ class CustomerScreen extends StatelessWidget {
                                           const Text('Service'),
                                           Text(
                                             order != null
-                                                ? '\$${order.serviceCharges?.toStringAsFixed(2) ?? '0.00'}'
+                                                ? '£ ${order.cartData.serviceCharges.toStringAsFixed(2) ?? '0.00'}'
                                                 : '0.00',
                                           ),
                                         ],
@@ -292,7 +360,7 @@ class CustomerScreen extends StatelessWidget {
                                           ),
                                           Text(
                                             order != null
-                                                ? '-\$${order.salesDiscount?.toStringAsFixed(2) ?? '0.00'}'
+                                                ? '- £ ${order.cartData.saleDiscount.toStringAsFixed(2) ?? '0.00'}'
                                                 : '0.00',
                                             style: TextStyle(color: Colors.red),
                                           ),
@@ -316,7 +384,7 @@ class CustomerScreen extends StatelessWidget {
                                           ),
                                           Text(
                                             order != null
-                                                ? '\$${order.totalAmount?.toStringAsFixed(2) ?? '0.00'}'
+                                                ? '£ ${order.cartData.total.toStringAsFixed(2) ?? '0.00'}'
                                                 : '0.00',
                                             style: const TextStyle(
                                               fontSize: 16.0,
