@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:tenxglobal_customer/core/api_services/network_api_services.dart';
 
 import 'package:tenxglobal_customer/presentation/customer/provider/customer_provider.dart';
 import 'package:tenxglobal_customer/presentation/customer/screen/customer_screen.dart';
@@ -139,7 +140,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => CustomerProvider())],
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => CustomerProvider(apiServices: NetworkApiServices()),
+        ),
+      ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
