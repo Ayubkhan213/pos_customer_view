@@ -44,8 +44,9 @@ class NetworkApiServices extends BaseApiServices {
           )
           .timeout(const Duration(seconds: 15));
       responseJson = returnResponse(response);
+      print("${response.body}");
     } on SocketException {
-      throw FetchDataException(message: 'No Internet Connection');
+      throw FetchDataException(message: 'print("No Internet Connection');
     }
     return responseJson;
   }

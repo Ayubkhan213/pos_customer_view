@@ -14,7 +14,7 @@ class CustomerProvider extends ChangeNotifier {
 
   ///  Add order from JSON
   void addOrderFromJson(Map<String, dynamic> json) {
-    print('---------------------------');
+    print('---------------------------    ${json}');
     final orderResponse = CartResponse.fromJson(json);
     print(orderResponse.cartData.customer);
     _orders.clear();
