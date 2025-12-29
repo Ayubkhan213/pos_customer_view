@@ -3,9 +3,10 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:tenxglobal_customer/core/api_services/network_api_services.dart';
+import 'package:tenxglobal_customer/presentation/connection_screen/provider/connection_provider.dart';
+import 'package:tenxglobal_customer/presentation/connection_screen/screen/connection_screen.dart';
 
 import 'package:tenxglobal_customer/presentation/customer/provider/customer_provider.dart';
-import 'package:tenxglobal_customer/presentation/customer/screen/customer_screen.dart';
 
 ///  Global navigator key (IMPORTANT)
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -16,30 +17,8 @@ void main() async {
   runApp(const MyApp());
 }
 
-/* -------------------- NETWORK HELPERS -------------------- */
-
-Future<String?> getWifiIp() async {
-  try {
-    for (var interface in await NetworkInterface.list()) {
-      for (var addr in interface.addresses) {
-        if (addr.type == InternetAddressType.IPv4 &&
-            !addr.isLoopback &&
-            !addr.address.startsWith("127")) {
-          // Accept first non-loopback IPv4 address
-          return addr.address;
-        }
-      }
-    }
-  } catch (e) {
-    print("Error getting IP: $e");
-  }
-  return null;
-}
-
-/* -------------------- HTTP SERVER -------------------- */
-
 Future<void> startServer() async {
-  final ip = await getWifiIp();
+  // final ip = await _getLocalIpAddress();
 
   final server = await HttpServer.bind(
     InternetAddress.anyIPv4,
@@ -48,7 +27,6 @@ Future<void> startServer() async {
   );
 
   print('Server started!');
-  print('POST → http://$ip:51234/data');
 
   await for (HttpRequest request in server) {
     print('--------------------');
@@ -141,14 +119,15 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => CustomerProvider()),
         ChangeNotifierProvider(
-          create: (_) => CustomerProvider(apiServices: NetworkApiServices()),
+          create: (_) => ConnectionProvider(apiServices: NetworkApiServices()),
         ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        home: CustomerScreen(),
+        home: ConnectionScreen(),
       ),
     );
   }

@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:tenxglobal_customer/core/api_services/base_api_services.dart';
-import 'package:tenxglobal_customer/models/cart_data_model.dart';
+
 import 'package:tenxglobal_customer/models/cart_response_model.dart';
 
 // import your model file
 // import 'order_response.dart';
 
 class CustomerProvider extends ChangeNotifier {
-  BaseApiServices apiServices;
-  CustomerProvider({required this.apiServices});
-
   ///  List of parsed orders
   final List<CartResponse> _orders = [];
 
